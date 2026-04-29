@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: ff-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: feature_flags
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - ff-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ff-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass redis123
+    volumes:
+      - redis_data:/data
+    networks:
+      - ff-network
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: ff-redis-insight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis_insight:/data
+    networks:
+      - ff-network
+    depends_on:
+      - redis
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: ff-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - ff-network
+
+networks:
+  ff-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:
+  redis_insight:
