@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+coverage
+.next
+*.log
+.env
+.env.local
