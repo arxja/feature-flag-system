@@ -5,8 +5,8 @@ import compression from 'compression';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import { config } from './config/env';
-import { logger, stream } from './utils/logger';
+import { config } from './config/env.js';
+import { logger, stream } from './utils/logger.js';
 // import { errorHandler } from './middleware/errorHandler';
 // import { notFoundHandler } from './middleware/notFound';
 
