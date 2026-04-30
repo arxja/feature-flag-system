@@ -15,9 +15,19 @@
     "test": "npm run test:backend",
     "test:backend": "cd packages/backend && npm test",
     "docker:up": "docker-compose -f docker/dev/docker-compose.yml up",
-    "docker:down": "docker-compose -f docker/dev/docker-compose.yml down"
+    "docker:down": "docker-compose -f docker/dev/docker-compose.yml down",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "concurrently": "^8.2.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.3"
   }
 }
