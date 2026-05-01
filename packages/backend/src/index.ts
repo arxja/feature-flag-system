@@ -88,7 +88,7 @@ app.get('/ready', async (req, res) => {
     }
     
     try {
-        await mongoose.connection.db.admin().ping();
+        await mongoose.connection.db?.admin().ping();
         res.status(200).json({ 
             status: 'ready',
             timestamp: new Date().toISOString(),
