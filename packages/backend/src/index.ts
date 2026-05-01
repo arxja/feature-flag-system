@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { config } from './config/env.js';
 import { logger, stream } from './utils/logger.js';
 import { db } from './config/database.js';
+import evaluationRoutes from './routes/evaluationRoutes.route.js';
 
 const app = express();
 
@@ -42,6 +43,9 @@ if (config.RATE_LIMIT_WINDOW_MS && config.RATE_LIMIT_MAX_REQUESTS) {
 } else {
     logger.warn('Rate limiting disabled - missing configuration');
 }
+
+// Routes
+app.use(evaluationRoutes)
 
 // Health check
 app.get('/health', (req, res) => {
