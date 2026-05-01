@@ -101,7 +101,7 @@ class MongoDBConnection {
       }
     }
   }
-
+  private signalHandlersRegistered = false;
   private setupEventHandlers(): void {
     mongoose.connection.removeAllListeners();
     
@@ -119,15 +119,17 @@ class MongoDBConnection {
       this.connectionState = 'disconnected';
     });
 
-    process.on('SIGINT', async () => {
-      await this.disconnect();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', async () => {
-      await this.disconnect();
-      process.exit(0);
-    });
+    if(!this.signalHandlersRegistered) {
+      this.signalHandlersRegistered = true;
+      process.on("SIGINT", async () => {
+        await this.disconnect();
+        process.exit(0);
+      });
+      process.on("SIGTERM", async () => {
+        await this.disconnect();
+        process.exit(0);
+      })
+    }
   }
 
   private async waitForConnection(): Promise<void> {
