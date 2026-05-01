@@ -214,7 +214,10 @@ export class FeatureFlagRepository {
             await AuditLog.create({
                 flagKey: 'BULK',
                 action: 'BULK_UPDATE',
-                changes: { keys, enabled },
+                changes: { 
+                    before: { keys, previousStates: 'not captured' },
+                    after: { keys, enabled }
+                },
                 userId,
                 userEmail,
             });
