@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { FeatureFlag } from '../models/FeatureFlag.js';
 import { evaluator, EvaluationContext } from '../services/FeatureFlagEvaluator.service.js';
 import { logger } from '../utils/logger.js';
+import { config } from '../config/env.js';
 
 const router = Router();
 
@@ -111,6 +112,9 @@ router.get('/api/evaluate/:flagKey/explain', async (req: Request, res: Response)
 });
 
 router.post('/api/evaluate/test-setup', async (req: Request, res: Response) => {
+    if (config.NODE_ENV !== 'development') {
+        return res.status(404).end();
+    }
   try {
     const testFlags = [
       {
