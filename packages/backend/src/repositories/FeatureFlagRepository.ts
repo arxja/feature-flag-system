@@ -169,8 +169,16 @@ export class FeatureFlagRepository {
             if (!flag) {
                 throw new AppError(`Feature flag "${key}" not found`, 404);
             }
-            
-            await this.update(key, { enabled: false }, userId, userEmail);
+
+            await FeatureFlag.findOneAndUpdate(
+                { key },
+                {
+                    enabled: false,
+                    updatedBy: { userId, email: userEmail },
+                    updatedAt: new Date(),
+                },
+                { new: true, runValidators: true }
+            ).exec();
             
             await AuditLog.create({
                 flagKey: key,
