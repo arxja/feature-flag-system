@@ -105,11 +105,14 @@ export class FeatureFlagEvaluator {
           
         case 'user_attribute':
           if (context.userAttributes) {
-            const [key, expectedValue] = Object.entries(rule.value)[0] ?? [];
-            if (key && context.userAttributes[key] === expectedValue) {
-              return { matched: true, reason: `user_attribute_${key}_match` };
+            const matches = Object.entries(rule.value).every(
+              ([key, expectedValue]) => context.userAttributes?.[key] === expectedValue
+            );
+            if (matches) {
+              return { matched: true, reason: 'user_attribute_match' };
             }
           }
+          break;
           break;
           
         case 'percentage':
