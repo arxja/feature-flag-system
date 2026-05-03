@@ -74,7 +74,7 @@ const targetingRuleSchema = new Schema<ITargetingRule>({
                 return typeof value === 'object' && value !== null;
             }
             if (rule.type === 'whitelist') {
-                return Array.isArray(value);
+                return Array.isArray(value) && value.length > 0;
             }
             return false;
         }
