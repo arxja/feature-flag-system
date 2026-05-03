@@ -3,11 +3,16 @@ import Joi from 'joi';
 // Targeting rule validation
 const targetingRuleSchema = Joi.object({
   type: Joi.string().valid('percentage', 'user_ids', 'user_attribute', 'whitelist').required(),
-  value: Joi.alternatives().try(
-    Joi.number().min(0).max(100),
-    Joi.array().items(Joi.string()),
-    Joi.object()
-  ).required()
+  value: Joi.when('type', {
+    switch: [
+      { is: 'percentage', then: Joi.number().min(0).max(100).required() },
+      { is: 'user_ids', then: Joi.array().items(Joi.string()).min(1).required() },
+      { is: 'whitelist', then: Joi.array().items(Joi.string()).min(1).required() },
+      { is: 'user_attribute', then: Joi.object().min(1).required() },
+    ],
+    otherwise: Joi.forbidden()
+  })
+});
 });
 
 // Environment config validation
