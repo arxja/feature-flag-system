@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { flagsApi } from '@/lib/api/client';
 import { formatDate, getStatusColor, getRolloutColor } from '@/lib/utils';
 import { Switch } from '@/components/ui/Switch';
@@ -43,6 +43,8 @@ interface FeatureFlag {
   updatedAt: string;
 }
 
+// Todo (it's one of those big ones): break current page to smaller components
+
 export default function DashboardPage() {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +54,20 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'updated' | 'rollout'>('updated');
   const [showFilters, setShowFilters] = useState(false);
+  
+  const latestFetchId = useRef(0);
 
   const fetchFlags = async () => {
+    const fetchId = ++latestFetchId.current;
+    
     try {
       setLoading(true);
       const response = await flagsApi.getAll({ search });
+      
+      if (fetchId !== latestFetchId.current) {
+        return;
+      }
+      
       let filteredFlags = response.data.data || [];
       
       if (filterStatus === 'active') {
@@ -71,11 +82,20 @@ export default function DashboardPage() {
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
       
+      if (fetchId !== latestFetchId.current) {
+        return;
+      }
+      
       setFlags(filteredFlags);
     } catch (error) {
+      if (fetchId !== latestFetchId.current) {
+        return;
+      }
       console.error('Failed to fetch flags:', error);
     } finally {
-      setLoading(false);
+      if (fetchId === latestFetchId.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -139,7 +159,7 @@ export default function DashboardPage() {
                   New Feature Flag
                 </button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent title="Create New Feature Flag">
                 <CreateFlagForm
                   onSuccess={() => {
                     setIsCreateModalOpen(false);
@@ -252,22 +272,13 @@ export default function DashboardPage() {
               {search ? 'Try adjusting your search or filters' : 'Create your first feature flag to start managing rollouts'}
             </p>
             {!search && (
-              <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogTrigger asChild>
-                  <button className="mt-6 inline-flex items-center px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Flag
-                  </button>
-                </DialogTrigger>
-                <DialogContent>
-                  <CreateFlagForm
-                    onSuccess={() => {
-                      setIsCreateModalOpen(false);
-                      fetchFlags();
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
+              <button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="mt-6 inline-flex items-center px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Flag
+              </button>
             )}
           </div>
         ) : (
@@ -375,7 +386,7 @@ export default function DashboardPage() {
                             <Edit2 className="w-4 h-4 text-gray-500 group-hover/btn:text-primary-600 transition-colors" />
                           </button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent title="Edit Feature Flag">
                           <EditFlagForm
                             flag={flag}
                             onSuccess={() => {

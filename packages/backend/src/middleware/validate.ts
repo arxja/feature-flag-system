@@ -4,7 +4,14 @@ import { logger } from '../utils/logger.js';
 
 export const validate = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const data = { ...req.body, ...req.query, ...req.params };
+    let data: any;
+    
+    if (req.method === 'GET') {
+      data = { ...req.query };
+    } else {
+      data = { ...req.body };
+    }
+    
     const { error, value } = schema.validate(data, { abortEarly: false });
     
     if (error) {

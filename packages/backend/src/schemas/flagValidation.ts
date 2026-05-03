@@ -13,7 +13,6 @@ const targetingRuleSchema = Joi.object({
     otherwise: Joi.forbidden()
   })
 });
-});
 
 // Environment config validation
 const environmentConfigSchema = Joi.object({
