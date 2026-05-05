@@ -29,3 +29,14 @@ export interface StatsCardsProps {
   active: number;
   avgRollout: number;
 }
+
+export interface SearchAndFiltersProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  filterStatus: 'all' | 'active' | 'inactive';
+  onFilterStatusChange: (value: 'all' | 'active' | 'inactive') => void;
+  sortBy: 'name' | 'updated' | 'rollout';
+  onSortByChange: (value: 'name' | 'updated' | 'rollout') => void;
+  showFilters: boolean;
+  onShowFiltersChange: (value: boolean) => void;
+}
