@@ -51,6 +51,9 @@ export interface IFeatureFlag extends Document {
     // Timestamps
     createdAt: Date;
     updatedAt: Date;
+
+    // Version
+    __v: number;
 }
 
 const targetingRuleSchema = new Schema<ITargetingRule>({
@@ -165,6 +168,8 @@ const featureFlagSchema = new Schema<IFeatureFlag>(
     },
     {
         timestamps: true,
+        versionKey: '__v',
+        optimisticConcurrency: true,
         toJSON: { 
             virtuals: true,
             transform: (doc, ret) => {
