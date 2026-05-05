@@ -13,6 +13,8 @@ import { logger } from '../utils/logger.js';
 
 const router = Router();
 
+// ToDO: separate controllers
+
 // ! temp
 const getCurrentUser = (req: Request) => ({
   userId: 'system',
@@ -107,21 +109,37 @@ router.patch('/api/admin/flags/:key', validate(updateFlagValidation), async (req
     
     const updates = req.validatedData;
     const user = getCurrentUser(req);
+    const expectedVersion = req.body.__v;
     
-    const flag = await featureFlagRepository.update(
+    if (expectedVersion === undefined) {
+      res.status(400).json({ error: 'Version number (__v) is required for updates' });
+      return;
+    }
+    
+    const flag = await featureFlagRepository.updateWithVersion(
       key,
       updates,
       user.userId,
-      user.email
+      user.email,
+      expectedVersion
     );
     
-    logger.info(`Flag updated: ${key}`);
+    logger.info(`Flag updated: ${key} to version ${flag.__v}`);
     res.json(flag);
   } catch (error: any) {
     logger.error('Error updating flag:', error);
     
     if (error.message?.includes('not found')) {
       res.status(404).json({ error: error.message });
+      return;
+    }
+    
+    if (error.status === 409 || error.message?.includes('modified by another user')) {
+      res.status(409).json({ 
+        error: error.message,
+        code: 'CONFLICT',
+        needsRefresh: true
+      });
       return;
     }
     
@@ -146,21 +164,32 @@ router.post('/api/admin/flags/:key/toggle', async (req: Request, res: Response) 
       return;
     }
     
-    const updated = await featureFlagRepository.update(
+    const updated = await featureFlagRepository.updateWithVersion(
       key,
       { enabled: !flag.enabled },
       user.userId,
-      user.email
+      user.email,
+      flag.__v
     );
     
     logger.info(`Flag toggled: ${key} -> ${updated.enabled}`);
     res.json({ 
       key: updated.key,
       enabled: updated.enabled,
+      __v: updated.__v,
       message: `Flag ${updated.enabled ? 'enabled' : 'disabled'} successfully`
     });
   } catch (error: any) {
     logger.error('Error toggling flag:', error);
+    
+    if (error.status === 409) {
+      res.status(409).json({ 
+        error: 'Flag was modified by another user. Please refresh.',
+        code: 'CONFLICT'
+      });
+      return;
+    }
+    
     res.status(500).json({ error: error.message || 'Failed to toggle flag' });
   }
 });
