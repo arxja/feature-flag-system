@@ -4,21 +4,17 @@ import { useState, useEffect, useRef } from 'react';
 import { flagsApi } from '@/lib/api/client';
 import { formatDate, getStatusColor, getRolloutColor } from '@/lib/utils';
 import { Switch } from '@/components/ui/Switch';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/Dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/Dialog';
 import CreateFlagForm from '@/components/CreateFlagForm';
 import EditFlagForm from '@/components/EditFlagForm';
-import { 
-  Plus, 
-  Search, 
-  Tag, 
-  Clock, 
-  Users, 
-  ChevronRight, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Tag,
+  Clock,
+  Users,
+  ChevronRight,
+  Trash2,
   Edit2,
   Filter,
   ChevronDown,
@@ -26,7 +22,7 @@ import {
   CheckCircle2,
   TrendingUp,
   Calendar,
-  Settings
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +37,7 @@ interface FeatureFlag {
   targetingRules: any[];
   createdAt: string;
   updatedAt: string;
+  __v: number;
 }
 
 // Todo (it's one of those big ones): break current page to smaller components
@@ -49,43 +46,42 @@ export default function DashboardPage() {
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selectedFlag, setSelectedFlag] = useState<FeatureFlag | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'updated' | 'rollout'>('updated');
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const latestFetchId = useRef(0);
 
   const fetchFlags = async () => {
     const fetchId = ++latestFetchId.current;
-    
+
     try {
       setLoading(true);
       const response = await flagsApi.getAll({ search });
-      
+
       if (fetchId !== latestFetchId.current) {
         return;
       }
-      
+
       let filteredFlags = response.data.data || [];
-      
+
       if (filterStatus === 'active') {
         filteredFlags = filteredFlags.filter((f: FeatureFlag) => f.enabled);
       } else if (filterStatus === 'inactive') {
         filteredFlags = filteredFlags.filter((f: FeatureFlag) => !f.enabled);
       }
-      
+
       filteredFlags.sort((a: FeatureFlag, b: FeatureFlag) => {
         if (sortBy === 'name') return a.name.localeCompare(b.name);
         if (sortBy === 'rollout') return b.rolloutPercentage - a.rolloutPercentage;
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
       });
-      
+
       if (fetchId !== latestFetchId.current) {
         return;
       }
-      
+
       setFlags(filteredFlags);
     } catch (error) {
       if (fetchId !== latestFetchId.current) {
@@ -126,8 +122,10 @@ export default function DashboardPage() {
 
   const getStats = () => {
     const total = flags.length;
-    const active = flags.filter(f => f.enabled).length;
-    const avgRollout = Math.round(flags.reduce((acc, f) => acc + f.rolloutPercentage, 0) / total || 0);
+    const active = flags.filter((f) => f.enabled).length;
+    const avgRollout = Math.round(
+      flags.reduce((acc, f) => acc + f.rolloutPercentage, 0) / total || 0
+    );
     return { total, active, avgRollout };
   };
 
@@ -141,7 +139,7 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-linear-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
-                <Settings className="w-6 h-6 text-blue-black" />
+                <Settings className="w-6 h-6 text-black" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
@@ -152,25 +150,26 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <button className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-primary-600 to-primary-700 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02] text-black">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Feature Flag
-                </button>
-              </DialogTrigger>
-              <DialogContent title="Create New Feature Flag">
-                <CreateFlagForm
-                  onSuccess={() => {
-                    setIsCreateModalOpen(false);
-                    fetchFlags();
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-primary-600 to-primary-700 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02] text-black"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Feature Flag
+            </button>
           </div>
         </div>
       </header>
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent title="Create New Feature Flag">
+          <CreateFlagForm
+            onSuccess={() => {
+              setIsCreateModalOpen(false);
+              fetchFlags();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
@@ -186,7 +185,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-center justify-between">
               <div>
@@ -198,7 +197,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:shadow-md transition-all">
             <div className="flex items-center justify-between">
               <div>
@@ -224,17 +223,19 @@ export default function DashboardPage() {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
               />
             </div>
-            
+
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Filter className="w-4 h-4" />
               Filters
-              <ChevronDown className={cn("w-4 h-4 transition-transform", showFilters && "rotate-180")} />
+              <ChevronDown
+                className={cn('w-4 h-4 transition-transform', showFilters && 'rotate-180')}
+              />
             </button>
           </div>
-          
+
           {showFilters && (
             <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 animate-in slide-in-from-top-2 duration-200">
               <select
@@ -246,7 +247,7 @@ export default function DashboardPage() {
                 <option value="active">Active Only</option>
                 <option value="inactive">Inactive Only</option>
               </select>
-              
+
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
@@ -269,10 +270,12 @@ export default function DashboardPage() {
           <div className="text-center py-16 bg-white rounded-xl border border-gray-200 shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900">No flags found</h3>
             <p className="text-gray-500 mt-1 max-w-sm mx-auto">
-              {search ? 'Try adjusting your search or filters' : 'Create your first feature flag to start managing rollouts'}
+              {search
+                ? 'Try adjusting your search or filters'
+                : 'Create your first feature flag to start managing rollouts'}
             </p>
             {!search && (
-              <button 
+              <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="mt-6 inline-flex items-center px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all"
               >
@@ -313,12 +316,16 @@ export default function DashboardPage() {
                         <p className="text-sm text-gray-500 line-clamp-2">{flag.description}</p>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center gap-4 lg:gap-6">
                       <div className="text-right min-w-20">
-                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Status</div>
+                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+                          Status
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(flag.enabled)} animate-pulse`} />
+                          <div
+                            className={`w-2.5 h-2.5 rounded-full ${getStatusColor(flag.enabled)} animate-pulse`}
+                          />
                           <span className="text-sm font-semibold">
                             {flag.enabled ? (
                               <span className="text-green-600">Active</span>
@@ -378,7 +385,7 @@ export default function DashboardPage() {
                         <span>Created {formatDate(flag.createdAt)}</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-1">
                       <Dialog>
                         <DialogTrigger asChild>
@@ -395,14 +402,14 @@ export default function DashboardPage() {
                           />
                         </DialogContent>
                       </Dialog>
-                      
+
                       <button
                         onClick={() => handleDelete(flag.key)}
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors group/btn"
                       >
                         <Trash2 className="w-4 h-4 text-gray-500 group-hover/btn:text-red-600 transition-colors" />
                       </button>
-                      
+
                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors group/btn">
                         <ChevronRight className="w-4 h-4 text-gray-500 group-hover/btn:text-gray-700 transition-colors" />
                       </button>

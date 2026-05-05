@@ -86,13 +86,12 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Server Error */}
       {serverError && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           {serverError}
         </div>
       )}
-      {/* Flag Key */}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Flag Key <span className="text-red-500">*</span>
@@ -111,7 +110,7 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
           Only lowercase letters, numbers, and underscores. Cannot be changed after creation.
         </p>
       </div>
-      {/* Display Name */}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Display Name <span className="text-red-500">*</span>
@@ -127,7 +126,7 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
         />
         {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
       </div>
-      {/* Description */}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
         <textarea
@@ -140,7 +139,7 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
           <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>
         )}
       </div>
-      {/* Rollout Percentage */}
+
       <div>
         <div className="flex justify-between items-center mb-1">
           <label className="block text-sm font-medium text-gray-700">Rollout Percentage</label>
@@ -163,7 +162,7 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
           <p className="mt-1 text-xs text-red-500">{errors.rolloutPercentage.message}</p>
         )}
       </div>
-      {/* Tags */}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
         <div className="flex gap-2">
@@ -205,7 +204,7 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
         )}
         {errors.tags && <p className="mt-1 text-xs text-red-500">{errors.tags.message}</p>}
       </div>
-      {/* Enable Immediately & Submit */}
+
       <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -232,6 +231,6 @@ const CreateFlagForm = ({ onSuccess }: CreateFlagFormProps) => {
       </div>
     </form>
   );
-}
+};
 
 export default CreateFlagForm;
