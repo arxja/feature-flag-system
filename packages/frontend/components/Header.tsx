@@ -22,6 +22,7 @@ const Header = ({ onCreateClick }: HeaderProps) => {
             </div>
           </div>
           <button
+            type="button"
             onClick={onCreateClick}
             className="inline-flex items-center px-5 py-2.5 bg-linear-to-r from-primary-600 to-primary-700 rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02] text-black"
           >

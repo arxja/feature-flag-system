@@ -11,6 +11,7 @@ import  LoadingSpinner  from '@/components/ui/LoadingSpinner';
 import { flagsApi } from '@/lib/api/client';
 import { useFlags } from '@/hooks/useFetch';
 import StateCards from '@/components/StateCards';
+import { FeatureFlag } from '@/types/type';
 
 export default function DashboardPage() {
   const [search, setSearch] = useState('');
@@ -25,7 +26,7 @@ export default function DashboardPage() {
     sortBy,
   });
 
-  const handleToggle = async (flag: any) => {
+  const handleToggle = async (flag: FeatureFlag) => {
     try {
       await flagsApi.toggle(flag.key);
       await refetch();

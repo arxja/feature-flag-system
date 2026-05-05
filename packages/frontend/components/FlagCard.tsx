@@ -118,7 +118,7 @@ const FlagCard = ({ flag, index, onToggle, onDelete, onRefresh }: FlagCardProps)
           <div className="flex items-center gap-1">
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
               <DialogTrigger asChild>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors group/btn">
+                <button type='button' aria-label='Edit feature flag' className="p-2 hover:bg-gray-100 rounded-lg transition-colors group/btn">
                   <Edit2 className="w-4 h-4 text-gray-500 group-hover/btn:text-primary-600 transition-colors" />
                 </button>
               </DialogTrigger>
@@ -134,13 +134,15 @@ const FlagCard = ({ flag, index, onToggle, onDelete, onRefresh }: FlagCardProps)
             </Dialog>
 
             <button
+            type='button' 
+            aria-label='Delete feature flag'
               onClick={() => onDelete(flag.key)}
               className="p-2 hover:bg-red-50 rounded-lg transition-colors group/btn"
             >
               <Trash2 className="w-4 h-4 text-gray-500 group-hover/btn:text-red-600 transition-colors" />
             </button>
 
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors group/btn">
+            <button type='button' aria-label='View feature flag details' className="p-2 hover:bg-gray-100 rounded-lg transition-colors group/btn">
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover/btn:text-gray-700 transition-colors" />
             </button>
           </div>

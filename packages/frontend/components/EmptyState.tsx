@@ -14,6 +14,7 @@ const EmptyState = ({ search, onCreateClick }: EmptyStateProps) => {
       </p>
       {!search && (
         <button
+        type='button'
           onClick={onCreateClick}
           className="mt-6 inline-flex items-center px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all"
         >

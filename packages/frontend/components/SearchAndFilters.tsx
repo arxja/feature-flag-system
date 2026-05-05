@@ -20,6 +20,7 @@ const SearchAndFilters = ({
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
+            aria-label="Search feature flags"
             type="text"
             placeholder="Search flags by name, key, or description..."
             value={search}
@@ -43,6 +44,7 @@ const SearchAndFilters = ({
       {showFilters && (
         <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 animate-in slide-in-from-top-2 duration-200">
           <select
+          aria-label="Filter by status"
             value={filterStatus}
             onChange={(e) => onFilterStatusChange(e.target.value as any)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -53,6 +55,7 @@ const SearchAndFilters = ({
           </select>
 
           <select
+          aria-label="Sort feature flags"
             value={sortBy}
             onChange={(e) => onSortByChange(e.target.value as any)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
