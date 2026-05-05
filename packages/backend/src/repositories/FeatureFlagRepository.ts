@@ -93,16 +93,20 @@ export class FeatureFlagRepository {
         );
       }
 
-      await AuditLog.create({
-        flagKey: key,
-        action: 'UPDATE',
-        changes: {
-          before: { ...existing.toObject(), __v: expectedVersion },
-          after: { ...updated.toObject(), __v: updated.__v },
-        },
-        userId,
-        userEmail,
-      });
+      try {
+        await AuditLog.create({
+          flagKey: key,
+          action: 'UPDATE',
+          changes: {
+            before: { ...existing.toObject(), __v: expectedVersion },
+            after: { ...updated.toObject(), __v: updated.__v },
+          },
+          userId,
+          userEmail,
+        });
+      } catch (auditError) {
+        logger.error(`Audit log write failed for flag ${key}:`, auditError);
+      }
 
       logger.info(`Updated feature flag: ${key} to version ${updated.__v}`);
       return updated;
