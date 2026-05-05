@@ -40,3 +40,11 @@ export interface SearchAndFiltersProps {
   showFilters: boolean;
   onShowFiltersChange: (value: boolean) => void;
 }
+
+export interface FlagCardProps {
+  flag: FeatureFlag;
+  index: number;
+  onToggle: (flag: FeatureFlag) => Promise<void>;
+  onDelete: (key: string) => Promise<void>;
+  onRefresh: () => void;
+}
