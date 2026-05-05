@@ -53,3 +53,7 @@ export interface EmptyStateProps {
   search: string;
   onCreateClick: () => void;
 }
+
+export interface HeaderProps {
+  onCreateClick: () => void;
+}
