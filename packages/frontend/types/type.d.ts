@@ -48,3 +48,8 @@ export interface FlagCardProps {
   onDelete: (key: string) => Promise<void>;
   onRefresh: () => void;
 }
+
+export interface EmptyStateProps {
+  search: string;
+  onCreateClick: () => void;
+}
