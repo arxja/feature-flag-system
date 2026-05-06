@@ -2,6 +2,7 @@ import { FeatureFlag, IFeatureFlag } from '../models/FeatureFlag.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { logger } from '../utils/logger.js';
 import { AppError } from '../utils/errors.js';
+import { cacheService } from '../services/cache.service.js';
 
 export interface FindFlagsFilters {
   search?: string;
@@ -50,6 +51,26 @@ export class FeatureFlagRepository {
     }
   }
 
+  async findByKeyWithCache(key: string): Promise<IFeatureFlag | null> {
+    try {
+      const cached = await cacheService.get(key);
+      if (cached) {
+        return cached;
+      }
+
+      const flag = await this.findByKey(key);
+
+      if (flag) {
+        await cacheService.set(key, flag.toObject(), flag.__v);
+      }
+
+      return flag;
+    } catch (error) {
+      logger.error(`Error finding flag ${key} with cache:`, error);
+      return this.findByKey(key);
+    }
+  }
+
   async updateWithVersion(
     key: string,
     updates: Partial<IFeatureFlag>,
@@ -92,6 +113,8 @@ export class FeatureFlagRepository {
           409
         );
       }
+
+      await cacheService.invalidate(key);
 
       try {
         await AuditLog.create({
@@ -222,6 +245,7 @@ export class FeatureFlagRepository {
     try {
       const flags = await FeatureFlag.find({ key: { $in: keys } }).exec();
       let modifiedCount = 0;
+      const updatedKeys: string[] = [];
 
       for (const flag of flags) {
         try {
@@ -230,6 +254,10 @@ export class FeatureFlagRepository {
         } catch (error) {
           logger.warn(`Failed to update flag ${flag.key}:`, error);
         }
+      }
+
+      if (updatedKeys.length > 0) {
+        await cacheService.invalidateMany(updatedKeys);
       }
 
       await AuditLog.create({

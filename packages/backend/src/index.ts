@@ -11,6 +11,7 @@ import { logger, stream } from './utils/logger.js';
 import { db } from './config/database.js';
 import evaluationRoutes from './routes/evaluationRoutes.route.js';
 import adminRoutes from './routes/adminRoutes.route.js';
+import { redis } from './config/redis.js';
 
 const app = express();
 
@@ -132,6 +133,12 @@ const startServer = async () => {
 
     await db.connect();
 
+    try {
+      await redis.connect();
+    } catch (error) {
+      logger.warn('⚠️ Redis connection failed - caching disabled');
+    }
+
     const server = app.listen(config.PORT, () => {
       logger.info(`
 ╔══════════════════════════════════════════════════════════╗
@@ -143,6 +150,7 @@ const startServer = async () => {
 ║  Ping:      http://localhost:${config.PORT}/api/ping         ║
 ║  Environment: ${(config.NODE_ENV || 'development').padEnd(36)}║
 ║  Database:  ${mongoose.connection.readyState === 1 ? '✅ Connected'.padEnd(36) : '❌ Disconnected'.padEnd(36)}║
+║  Cache:     ${redis.isReady() ? '✅ Redis' : '⚠️ Disabled'}║
 ╚══════════════════════════════════════════════════════════╝
             `);
     });
