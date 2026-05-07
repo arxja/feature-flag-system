@@ -61,7 +61,9 @@ export class FeatureFlagClient {
         environment: options.environment,
       };
 
-      const response = await this.client.get<EvaluationResult>(`/api/evaluate/${flagKey}`, {
+      const response = await this.client.get<EvaluationResult>(`/api/evaluate/${encodeURIComponent(flagKey)}`, {
+        params: this.buildQueryParams(context),
+      });
         params: this.buildQueryParams(context),
       });
 
