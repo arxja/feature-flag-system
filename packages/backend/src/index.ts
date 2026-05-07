@@ -12,6 +12,7 @@ import { db } from './config/database.js';
 import evaluationRoutes from './routes/evaluationRoutes.route.js';
 import adminRoutes from './routes/adminRoutes.route.js';
 import { redis } from './config/redis.js';
+import sseRoutes from './routes/sse.route.js';
 
 const app = express();
 
@@ -51,6 +52,7 @@ if (config.RATE_LIMIT_WINDOW_MS && config.RATE_LIMIT_MAX_REQUESTS) {
 // Routes
 app.use(evaluationRoutes);
 app.use(adminRoutes);
+app.use(sseRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

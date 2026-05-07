@@ -3,6 +3,7 @@ import { AuditLog } from '../models/AuditLog.js';
 import { logger } from '../utils/logger.js';
 import { AppError } from '../utils/errors.js';
 import { cacheService } from '../services/cache.service.js';
+import { sseManager } from '../services/sse.service.js';
 
 export interface FindFlagsFilters {
   search?: string;
@@ -115,6 +116,12 @@ export class FeatureFlagRepository {
       }
 
       await cacheService.invalidate(key);
+
+      sseManager.broadcastFlagUpdate(key, {
+        action: 'UPDATE',
+        flag: updated.toObject(),
+        version: updated.__v,
+      });
 
       try {
         await AuditLog.create({
