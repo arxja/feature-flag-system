@@ -20,7 +20,7 @@ export class FeatureFlagClient {
 
   constructor(config: SDKConfig) {
     this.cache = new Map();
-    this.defaultTtl = (config.cacheTtl || 30) * 1000; // Convert to milliseconds
+    this.defaultTtl = (config.cacheTtl ?? 30) * 1000; // Convert to milliseconds
     this.onError = config.onError;
 
     // Create HTTP client
@@ -61,7 +61,9 @@ export class FeatureFlagClient {
         environment: options.environment,
       };
 
-      const response = await this.client.get<EvaluationResult>(`/api/evaluate/${flagKey}`, {
+      const response = await this.client.get<EvaluationResult>(`/api/evaluate/${encodeURIComponent(flagKey)}`, {
+        params: this.buildQueryParams(context),
+      });
         params: this.buildQueryParams(context),
       });
 
