@@ -42,7 +42,7 @@ pnpm add @arxja/feature-flags-sdk
         return (
           <FeatureFlagProvider
             config={{
-              apiUrl: 'https://api.feature-flags.yourdomain.com',
+              apiUrl: '< Not available now >',
               apiKey: 'sk_live_abc123',
               cacheTtl: 30,
             }}
@@ -73,7 +73,7 @@ pnpm add @arxja/feature-flags-sdk
     ```js
     import { FeatureFlagClient } from '@arxja/feature-flags-sdk';
     const flags = new FeatureFlagClient({
-      apiUrl: 'https://api.feature-flags.yourdomain.com',
+      apiUrl: '< Not available now >',
       apiKey: 'sk_live_abc123',
     });
     const showNewFeature = await flags.isEnabled('new_checkout', {
@@ -271,7 +271,7 @@ const { isEnabled } = useFeatureFlag('new_feature', {
 ```jsx
 <FeatureFlagProvider
   config={{
-    apiUrl: 'https://api.yourdomain.com',
+    apiUrl: '< Not available now >',
     apiKey: 'sk_live_xxx',
     onError: (error) => {
       console.error('Feature flag error:', error);
@@ -282,10 +282,11 @@ const { isEnabled } = useFeatureFlag('new_feature', {
 >
   {children}
 </FeatureFlagProvider>
+```
 
 ### Manual Cache Control
 
-typescript
+```typescript
 import { FeatureFlagClient } from '@arxja/feature-flags-sdk';
 
 const client = new FeatureFlagClient({ apiUrl, apiKey });

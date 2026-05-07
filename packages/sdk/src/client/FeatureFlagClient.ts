@@ -3,11 +3,11 @@ import { SDKConfig, EvaluationContext, EvaluationResult, FlagOptions } from '../
 
 /**
  * Core SDK Client
- * 
+ *
  * WHAT: Makes API calls to your feature flag server
  * WHY: Other apps use this instead of writing fetch() manually
  * HOW: Wraps HTTP calls with caching, retries, error handling
- * 
+ *
  * EXAMPLE:
  * const client = new FeatureFlagClient({ apiUrl: 'http://localhost:3001' });
  * const enabled = await client.isEnabled('dark_mode', { userId: '123' });
@@ -35,13 +35,13 @@ export class FeatureFlagClient {
 
   /**
    * Check if a feature flag is enabled for a user
-   * 
+   *
    * @param flagKey - The feature flag key (e.g., "dark_mode")
    * @param options - User context (userId, attributes, environment)
    * @returns boolean - true if feature is enabled
-   * 
+   *
    * EXAMPLE:
-   * const showNewUI = await client.isEnabled('new_dashboard', { 
+   * const showNewUI = await client.isEnabled('new_dashboard', {
    *   userId: 'user123',
    *   userAttributes: { tier: 'premium' }
    * });
@@ -71,15 +71,14 @@ export class FeatureFlagClient {
       this.storeInCache(flagKey, options, result);
 
       return result;
-
     } catch (error) {
       // Handle errors gracefully
       if (this.onError) {
         this.onError(error instanceof Error ? error : new Error(String(error)));
       }
-      
+
       console.error(`[FeatureFlagSDK] Failed to evaluate ${flagKey}:`, error);
-      
+
       // Return fallback value or false
       return options.fallback !== undefined ? options.fallback : false;
     }
@@ -87,11 +86,11 @@ export class FeatureFlagClient {
 
   /**
    * Get multiple flags at once (batch evaluation)
-   * 
+   *
    * @param flagKeys - Array of flag keys
    * @param options - User context
    * @returns Record of flag key to boolean
-   * 
+   *
    * EXAMPLE:
    * const flags = await client.getFlags(['dark_mode', 'new_dashboard'], {
    *   userId: 'user123'
@@ -117,10 +116,11 @@ export class FeatureFlagClient {
       }
 
       return results;
-
     } catch (error) {
-      console.error('[FeatureFlagSDK] Batch evaluation failed:', error);
-      
+      if (this.onError) {
+        this.onError(error instanceof Error ? error : new Error(String(error)));
+      }
+
       // Return fallback values
       const fallbacks: Record<string, boolean> = {};
       for (const key of flagKeys) {
@@ -153,7 +153,20 @@ export class FeatureFlagClient {
   private getCacheKey(flagKey: string, options: FlagOptions): string {
     const userId = options.userId || 'anonymous';
     const environment = options.environment || 'production';
-    return `${flagKey}:${userId}:${environment}`;
+    const attrs = options.userAttributes
+      ? JSON.stringify(
+          Object.keys(options.userAttributes)
+            .sort()
+            .reduce(
+              (acc, key) => {
+                acc[key] = options.userAttributes![key];
+                return acc;
+              },
+              {} as Record<string, unknown>
+            )
+        )
+      : '{}';
+    return `${flagKey}:${userId}:${environment}:${attrs}`;
   }
 
   /**
@@ -162,11 +175,12 @@ export class FeatureFlagClient {
   private getFromCache(flagKey: string, options: FlagOptions): boolean | null {
     const key = this.getCacheKey(flagKey, options);
     const cached = this.cache.get(key);
-    
+
     if (cached && Date.now() < cached.expiresAt) {
       return cached.result;
     }
-    
+    if (cached) this.cache.delete(key)
+
     return null;
   }
 
@@ -186,19 +200,19 @@ export class FeatureFlagClient {
    */
   private buildQueryParams(context: EvaluationContext): Record<string, any> {
     const params: Record<string, any> = {};
-    
+
     if (context.userId) {
       params.userId = context.userId;
     }
-    
+
     if (context.environment) {
       params.environment = context.environment;
     }
-    
+
     if (context.userAttributes) {
       Object.assign(params, context.userAttributes);
     }
-    
+
     return params;
   }
 }

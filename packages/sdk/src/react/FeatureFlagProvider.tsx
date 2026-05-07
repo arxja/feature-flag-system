@@ -17,7 +17,7 @@ interface FeatureFlagProviderProps {
 }
 
 export function FeatureFlagProvider({ children, config }: FeatureFlagProviderProps) {
-  const client = useMemo(() => new FeatureFlagClient(config), [config.apiUrl]);
+  const client = useMemo(() => new FeatureFlagClient(config), [config]);
   
   const value = useMemo(() => ({ client, config }), [client, config]);
   
@@ -81,7 +81,14 @@ export function useFeatureFlag(flagKey: string, options?: FlagOptions) {
     return () => {
       isMounted = false;
     };
-  }, [flagKey, options?.userId, options?.environment]);
+  }, [
+    client,
+    flagKey,
+    options?.userId,
+    options?.environment,
+    options?.userAttributes,
+    options?.fallback,
+  ]);
   
   return { isEnabled, isLoading, error };
 }
@@ -130,7 +137,18 @@ export function useFeatureFlags(flagKeys: string[], options?: FlagOptions) {
     };
     
     evaluate();
-  }, [flagKeys.join(','), options?.userId, options?.environment]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    client,
+    flagKeys.join(","),
+    options?.userId,
+    options?.environment,
+    options?.userAttributes,
+    options?.fallback,
+  ]);
   
   return { flags, isLoading, error };
 }
