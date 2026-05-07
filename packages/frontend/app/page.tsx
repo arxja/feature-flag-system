@@ -1,17 +1,18 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/Dialog';
 import CreateFlagForm from '@/components/CreateFlagForm';
-import  Header  from '@/components//Header';
-import  SearchAndFilters  from '@/components//SearchAndFilters';
-import  FlagCard  from '@/components//FlagCard';
-import  EmptyState  from '@/components//EmptyState';
-import  LoadingSpinner  from '@/components/ui/LoadingSpinner';
+import Header from '@/components/Header';
+import SearchAndFilters from '@/components/SearchAndFilters';
+import FlagCard from '@/components/FlagCard';
+import EmptyState from '@/components/EmptyState';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { flagsApi } from '@/lib/api/client';
 import { useFlags } from '@/hooks/useFetch';
+import { useRealtimeFlags } from '@/hooks/useRealtimeFlags';
 import StateCards from '@/components/StateCards';
-import { FeatureFlag } from '@/types/type';
+import { FeatureFlag, SSEEvent } from '@/types/type';
 
 export default function DashboardPage() {
   const [search, setSearch] = useState('');
@@ -26,12 +27,18 @@ export default function DashboardPage() {
     sortBy,
   });
 
+  const handleRealtimeUpdate = useCallback((event: SSEEvent) => {
+    refetch();
+  }, [refetch]);
+
+  const { isConnected } = useRealtimeFlags(handleRealtimeUpdate);
+
   const handleToggle = async (flag: FeatureFlag) => {
     try {
       await flagsApi.toggle(flag.key);
-      await refetch();
     } catch (error) {
       console.error('Failed to toggle flag:', error);
+      alert('Failed to toggle flag');
     }
   };
 
@@ -40,7 +47,6 @@ export default function DashboardPage() {
       return;
     try {
       await flagsApi.delete(key);
-      await refetch();
     } catch (error) {
       console.error('Failed to delete flag:', error);
       alert('Failed to delete flag');
@@ -57,6 +63,19 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+      <div className="fixed bottom-4 right-4 z-50">
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs shadow-lg ${
+          isConnected 
+            ? 'bg-green-100 text-green-700' 
+            : 'bg-red-100 text-red-700'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${
+            isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+          }`} />
+          {isConnected ? 'Live Updates' : 'Reconnecting...'}
+        </div>
+      </div>
+
       <Header onCreateClick={() => setIsCreateModalOpen(true)} />
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -64,7 +83,6 @@ export default function DashboardPage() {
           <CreateFlagForm
             onSuccess={() => {
               setIsCreateModalOpen(false);
-              refetch();
             }}
           />
         </DialogContent>

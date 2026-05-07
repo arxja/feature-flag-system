@@ -57,3 +57,20 @@ export interface EmptyStateProps {
 export interface HeaderProps {
   onCreateClick: () => void;
 }
+
+export interface SSEEvent {
+  type: string;
+  flagKey: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'TOGGLE';
+  timestamp: number;
+  version?: number;
+  flag?: {
+    key: string;
+    name: string;
+    enabled: boolean;
+    rolloutPercentage: number;
+    tags: string[];
+    version: number;
+  };
+  refreshTrigger?: number;
+}
