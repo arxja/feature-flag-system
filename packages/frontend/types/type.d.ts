@@ -58,8 +58,8 @@ export interface HeaderProps {
   onCreateClick: () => void;
 }
 
-export interface SSEEvent {
-  type: string;
+export interface FlagUpdateEvent {
+  type: 'flag_update';
   flagKey: string;
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'TOGGLE';
   timestamp: number;
@@ -72,5 +72,13 @@ export interface SSEEvent {
     tags: string[];
     version: number;
   };
-  refreshTrigger?: number;
 }
+
+export interface BulkUpdateEvent {
+  type: 'bulk_update';
+  flagKeys: string[];
+  action: 'BULK_UPDATE';
+  timestamp: number;
+}
+
+export type SSEEvent = FlagUpdateEvent | BulkUpdateEvent;
