@@ -18,6 +18,7 @@ router.get('/api/sse', (req: Request, res: Response) => {
 
   req.on('close', () => {
     clearInterval(heartbeat);
+    sseManager.removeClient(clientId);
   });
 });
 

@@ -9,7 +9,6 @@ class SSEManager {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
     });
 
     res.write(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`);
@@ -37,18 +36,17 @@ class SSEManager {
       action: data.action,
       timestamp: Date.now(),
       version: data.version,
+      ...(data.flag && {
+        flag : {
+          key: data.flag.key,
+          name: data.flag.name,
+          enabled: data.flag.enabled,
+          rolloutPercentage: data.flag.rolloutPercentage,
+          tags: data.flag.tags,
+          version: data.flag.__v,
+        },
+      }),
     };
-
-    if (data.flag) {
-      message['flag'] = {
-        key: data.flag.key,
-        name: data.flag.name,
-        enabled: data.flag.enabled,
-        rolloutPercentage: data.flag.rolloutPercentage,
-        tags: data.flag.tags,
-        version: data.flag.__v,
-      };
-    }
 
     const eventData = `event: flag_update\ndata: ${JSON.stringify(message)}\n\n`;
 
@@ -76,11 +74,12 @@ class SSEManager {
 
     const eventData = `event: bulk_update\ndata: ${JSON.stringify(message)}\n\n`;
 
-    for (const client of this.clients.values()) {
+    for (const [clientId, client] of this.clients) {
       try {
         client.write(eventData);
       } catch (error) {
         logger.error('Failed to send bulk update:', error);
+        this.removeClient(clientId);
       }
     }
 

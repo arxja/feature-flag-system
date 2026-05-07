@@ -167,12 +167,6 @@ export const adminController = {
         return;
       }
 
-      sseManager.broadcastFlagUpdate(key, {
-        action: 'TOGGLE',
-        flag: flag.toObject(),
-        version: flag.__v,
-      });
-
       const updated = await featureFlagRepository.updateWithVersion(
         key,
         { enabled: !flag.enabled },
