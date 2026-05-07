@@ -57,3 +57,28 @@ export interface EmptyStateProps {
 export interface HeaderProps {
   onCreateClick: () => void;
 }
+
+export interface FlagUpdateEvent {
+  type: 'flag_update';
+  flagKey: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'TOGGLE';
+  timestamp: number;
+  version?: number;
+  flag?: {
+    key: string;
+    name: string;
+    enabled: boolean;
+    rolloutPercentage: number;
+    tags: string[];
+    version: number;
+  };
+}
+
+export interface BulkUpdateEvent {
+  type: 'bulk_update';
+  flagKeys: string[];
+  action: 'BULK_UPDATE';
+  timestamp: number;
+}
+
+export type SSEEvent = FlagUpdateEvent | BulkUpdateEvent;

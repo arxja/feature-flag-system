@@ -3,10 +3,11 @@ import { featureFlagRepository } from '../repositories/FeatureFlagRepository.js'
 import { FeatureFlag } from '../models/FeatureFlag.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { logger } from '../utils/logger.js';
+import { sseManager } from '../services/sse.service.js';
 
 const getCurrentUser = (req: Request) => ({
   userId: 'system',
-  email: 'system@localhost'
+  email: 'system@localhost',
 });
 
 export const adminController = {
@@ -14,15 +15,15 @@ export const adminController = {
   async getAllFlags(req: Request, res: Response) {
     try {
       const { search, tags, enabled, page, limit } = req.validatedData;
-      
+
       const result = await featureFlagRepository.findAll({
         search: search as string | undefined,
         tags: tags ? (tags as string).split(',') : undefined,
-        enabled: enabled !== undefined ? enabled as boolean : undefined,
+        enabled: enabled !== undefined ? (enabled as boolean) : undefined,
         page: page as number,
-        limit: limit as number
+        limit: limit as number,
       });
-      
+
       res.json(result);
     } catch (error) {
       logger.error('Error fetching flags:', error);
@@ -45,19 +46,19 @@ export const adminController = {
   async getFlagByKey(req: Request, res: Response) {
     try {
       const { key } = req.params;
-      
+
       if (!key) {
         res.status(400).json({ error: 'Flag key is required' });
         return;
       }
-      
+
       const flag = await featureFlagRepository.findByKey(key);
-      
+
       if (!flag) {
         res.status(404).json({ error: `Flag '${key}' not found` });
         return;
       }
-      
+
       res.json(flag);
     } catch (error) {
       logger.error('Error fetching flag:', error);
@@ -70,23 +71,29 @@ export const adminController = {
     try {
       const flagData = req.validatedData;
       const user = getCurrentUser(req);
-      
+
       const flag = await featureFlagRepository.create({
         ...flagData,
         createdBy: { userId: user.userId, email: user.email },
-        updatedBy: { userId: user.userId, email: user.email }
+        updatedBy: { userId: user.userId, email: user.email },
       });
-      
+
+      sseManager.broadcastFlagUpdate(flag.key, {
+        action: 'CREATE',
+        flag: flag.toObject(),
+        version: flag.__v,
+      });
+
       logger.info(`Flag created: ${flag.key}`);
       res.status(201).json(flag);
     } catch (error: any) {
       logger.error('Error creating flag:', error);
-      
+
       if (error.message?.includes('already exists')) {
         res.status(409).json({ error: error.message });
         return;
       }
-      
+
       res.status(400).json({ error: error.message || 'Failed to create flag' });
     }
   },
@@ -95,21 +102,21 @@ export const adminController = {
   async updateFlag(req: Request, res: Response) {
     try {
       const { key } = req.params;
-      
+
       if (!key) {
         res.status(400).json({ error: 'Flag key is required' });
         return;
       }
-      
+
       const updates = req.validatedData;
       const user = getCurrentUser(req);
       const expectedVersion = req.body.__v;
-      
+
       if (expectedVersion === undefined) {
         res.status(400).json({ error: 'Version number (__v) is required for updates' });
         return;
       }
-      
+
       const flag = await featureFlagRepository.updateWithVersion(
         key,
         updates,
@@ -117,26 +124,26 @@ export const adminController = {
         user.email,
         expectedVersion
       );
-      
+
       logger.info(`Flag updated: ${key} to version ${flag.__v}`);
       res.json(flag);
     } catch (error: any) {
       logger.error('Error updating flag:', error);
-      
+
       if (error.message?.includes('not found')) {
         res.status(404).json({ error: error.message });
         return;
       }
-      
+
       if (error.status === 409 || error.message?.includes('modified by another user')) {
-        res.status(409).json({ 
+        res.status(409).json({
           error: error.message,
           code: 'CONFLICT',
-          needsRefresh: true
+          needsRefresh: true,
         });
         return;
       }
-      
+
       res.status(400).json({ error: error.message || 'Failed to update flag' });
     }
   },
@@ -145,20 +152,21 @@ export const adminController = {
   async toggleFlag(req: Request, res: Response) {
     try {
       const { key } = req.params;
-      
+
       if (!key) {
         res.status(400).json({ error: 'Flag key is required' });
         return;
       }
-      
+
       const user = getCurrentUser(req);
-      
+
       const flag = await featureFlagRepository.findByKey(key);
+
       if (!flag) {
         res.status(404).json({ error: `Flag '${key}' not found` });
         return;
       }
-      
+
       const updated = await featureFlagRepository.updateWithVersion(
         key,
         { enabled: !flag.enabled },
@@ -166,25 +174,25 @@ export const adminController = {
         user.email,
         flag.__v
       );
-      
+
       logger.info(`Flag toggled: ${key} -> ${updated.enabled}`);
-      res.json({ 
+      res.json({
         key: updated.key,
         enabled: updated.enabled,
         __v: updated.__v,
-        message: `Flag ${updated.enabled ? 'enabled' : 'disabled'} successfully`
+        message: `Flag ${updated.enabled ? 'enabled' : 'disabled'} successfully`,
       });
     } catch (error: any) {
       logger.error('Error toggling flag:', error);
-      
+
       if (error.status === 409) {
-        res.status(409).json({ 
+        res.status(409).json({
           error: 'Flag was modified by another user. Please refresh.',
-          code: 'CONFLICT'
+          code: 'CONFLICT',
         });
         return;
       }
-      
+
       res.status(500).json({ error: error.message || 'Failed to toggle flag' });
     }
   },
@@ -194,24 +202,26 @@ export const adminController = {
     try {
       const { keys, enabled } = req.validatedData;
       const user = getCurrentUser(req);
-      
+
       if (!keys || !Array.isArray(keys) || keys.length === 0) {
         res.status(400).json({ error: 'Keys array is required' });
         return;
       }
-      
+
       const count = await featureFlagRepository.bulkToggle(
         keys as string[],
         enabled as boolean,
         user.userId,
         user.email
       );
-      
+
+      sseManager.broadcastBulkUpdate(keys, 'BULK_UPDATE');
+
       logger.info(`Bulk toggled ${count} flags to ${enabled}`);
-      res.json({ 
+      res.json({
         count,
         enabled,
-        message: `${count} flag(s) ${enabled ? 'enabled' : 'disabled'} successfully`
+        message: `${count} flag(s) ${enabled ? 'enabled' : 'disabled'} successfully`,
       });
     } catch (error: any) {
       logger.error('Error in bulk toggle:', error);
@@ -223,26 +233,31 @@ export const adminController = {
   async deleteFlag(req: Request, res: Response) {
     try {
       const { key } = req.params;
-      
+
       if (!key) {
         res.status(400).json({ error: 'Flag key is required' });
         return;
       }
-      
+
       const user = getCurrentUser(req);
-      
+
       await featureFlagRepository.softDelete(key, user.userId, user.email);
-      
+
+      sseManager.broadcastFlagUpdate(key, {
+        action: 'DELETE',
+        flag: { key },
+      });
+
       logger.info(`Flag deleted: ${key}`);
       res.json({ message: `Flag '${key}' deleted successfully` });
     } catch (error: any) {
       logger.error('Error deleting flag:', error);
-      
+
       if (error.message?.includes('not found')) {
         res.status(404).json({ error: error.message });
         return;
       }
-      
+
       res.status(500).json({ error: error.message || 'Failed to delete flag' });
     }
   },
@@ -251,19 +266,19 @@ export const adminController = {
   async getAuditLogs(req: Request, res: Response) {
     try {
       const { key } = req.params;
-      
+
       if (!key) {
         res.status(400).json({ error: 'Flag key is required' });
         return;
       }
-      
+
       const limit = parseInt(req.query.limit as string) || 50;
-      
+
       const logs = await AuditLog.find({ flagKey: key })
         .sort({ timestamp: -1 })
         .limit(limit)
         .lean();
-      
+
       res.json({ logs, count: logs.length });
     } catch (error) {
       logger.error('Error fetching audit logs:', error);
@@ -277,32 +292,29 @@ export const adminController = {
       const totalFlags = await FeatureFlag.countDocuments();
       const enabledFlags = await FeatureFlag.countDocuments({ enabled: true });
       const totalTags = await featureFlagRepository.getAllTags();
-      
-      const recentActivity = await AuditLog.find()
-        .sort({ timestamp: -1 })
-        .limit(10)
-        .lean();
-      
+
+      const recentActivity = await AuditLog.find().sort({ timestamp: -1 }).limit(10).lean();
+
       res.json({
         flags: {
           total: totalFlags,
           enabled: enabledFlags,
-          disabled: totalFlags - enabledFlags
+          disabled: totalFlags - enabledFlags,
         },
         tags: {
           total: totalTags.length,
-          list: totalTags.slice(0, 10)
+          list: totalTags.slice(0, 10),
         },
-        recentActivity: recentActivity.map(log => ({
+        recentActivity: recentActivity.map((log) => ({
           action: log.action,
           flagKey: log.flagKey,
           userEmail: log.userEmail,
-          timestamp: log.timestamp
-        }))
+          timestamp: log.timestamp,
+        })),
       });
     } catch (error) {
       logger.error('Error fetching stats:', error);
       res.status(500).json({ error: 'Failed to fetch statistics' });
     }
-  }
+  },
 };
