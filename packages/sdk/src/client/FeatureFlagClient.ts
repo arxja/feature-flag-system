@@ -20,7 +20,7 @@ export class FeatureFlagClient {
 
   constructor(config: SDKConfig) {
     this.cache = new Map();
-    this.defaultTtl = (config.cacheTtl || 30) * 1000; // Convert to milliseconds
+    this.defaultTtl = (config.cacheTtl ?? 30) * 1000; // Convert to milliseconds
     this.onError = config.onError;
 
     // Create HTTP client
