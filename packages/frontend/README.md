@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Feature Flag Admin Dashboard
 
-## Getting Started
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-3.x-38bdf8)](https://tailwindcss.com)
 
-First, run the development server:
+Production-ready admin dashboard for managing feature flags. Built with Next.js 14 App Router, Tailwind CSS, and custom UI components.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏗️ Architecture
+
+```text
+frontend/
+├── app/ # Next.js App Router pages
+│ └── page.tsx # Main dashboard (flag list, create/edit)
+├── components/ # Reusable React components
+│ ├── ui/ # Basic UI (Switch, Modal, Dialog)
+│ └── forms/ # CreateFlagForm, EditFlagForm
+├── hooks/ # Custom hooks
+│ └── useRealtimeFlags.ts # SSE connection for live updates
+├── lib/ # Utilities
+│ ├── api/ # API client (axios)
+│ ├── validation/ # Zod schemas
+│ └── utils.ts # Helpers (formatDate, colors)
+└── types/ # TypeScript definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- ✅ **Flag Management** - Create, read, update, delete
+- ✅ **Search & Filter** - By name, key, tags, status
+- ✅ **Real-time Updates** - SSE for instant sync across tabs
+- ✅ **Optimistic Locking** - Version conflict detection
+- ✅ **Rollout Sliders** - Visual percentage control
+- ✅ **Tag System** - Organize flags by category
+- ✅ **Audit Logs** - View change history
+- ✅ **Connection Status** - Live indicator for SSE
+- ✅ **Responsive Design** - Works on desktop and tablet
+- ✅ **Dark Mode Ready** - Tailwind theming ready
 
-## Learn More
+## 🔧 Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+```env
+# .env.local
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Quick Start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Install dependencies
+npm install
 
-## Deploy on Vercel
+# Run development server
+npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Build for production
+npm run build
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Start production server
+npm run start
+```
+
+## 📱 Dashboard Features
+
+ ### Flag Card
+ 
+  - Flag name, key, tags
+  - Status indicator (Active/Inactive)
+  - Rollout progress bar
+  - Last updated timestamp
+  - Edit/Delete actions 
+
+ ### Create/Edit Modal
+ 
+  - Key validation (lowercase, underscores, no spaces)
+  - Name and description fields
+  - Rollout percentage slider
+  - Tag management (add/remove)
+  - Enable immediately toggle
+  
+ ### Create/Edit Modal
+ 
+  - Real-time search by name/key
+  - Filter by status (active/inactive)
+  - Filter by tags (coming soon)
+
+## 🐛 Error Handling
+ 
+  - Key validation (lowercase, underscores, no spaces)
+  - Network errors - Fallback to cached data
+  - Validation errors - Inline error messages
+
+## 📝 Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| next | React framework |
+| react | UI library |
+| react-dom | DOM rendering |
+| axios | HTTP client |
+| zod | Schema validation |
+| react-hook-form | Form handling |
+| @hookform/resolvers | Zod integration |
+| lucide-react | Icons |
+| date-fns | Date formatting |
+| tailwindcss | Styling |
+
+## 🔄 Real-time Updates Flow
+
+```text
+Admin A toggles flag → Backend → SSE Broadcast → Admin B dashboard updates instantly
+```
+
+## 📸 Screenshots
+![Admin-dashboard](./public/screenshots/feature-flag-admin-dashboard.png)
+
