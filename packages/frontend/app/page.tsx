@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const handleToggle = async (flag: FeatureFlag) => {
     try {
       await flagsApi.toggle(flag.key);
+      refetch();
     } catch (error) {
       console.error('Failed to toggle flag:', error);
       alert('Failed to toggle flag');
@@ -47,6 +48,7 @@ export default function DashboardPage() {
       return;
     try {
       await flagsApi.delete(key);
+      refetch();
     } catch (error) {
       console.error('Failed to delete flag:', error);
       alert('Failed to delete flag');
@@ -83,6 +85,7 @@ export default function DashboardPage() {
           <CreateFlagForm
             onSuccess={() => {
               setIsCreateModalOpen(false);
+              refetch();
             }}
           />
         </DialogContent>

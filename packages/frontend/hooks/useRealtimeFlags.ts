@@ -2,14 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { flagsApi } from '@/lib/api/client';
-import { SSEEvent } from '../types/type';
+import { BulkUpdateEvent, FlagUpdateEvent, SSEEvent } from '../types/type';
 
 export function useRealtimeFlags(onFlagChange?: (event: SSEEvent) => void) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<SSEEvent | null>(null);
+  const SSE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:3001/api/sse');
+    const eventSource = new EventSource(`${SSE_URL}/api/sse`);
 
     eventSource.onopen = () => {
       console.log('🔌 SSE Connected');
@@ -29,7 +30,7 @@ export function useRealtimeFlags(onFlagChange?: (event: SSEEvent) => void) {
 
     eventSource.addEventListener('flag_update', (event: MessageEvent) => {
       try {
-        const data: SSEEvent = JSON.parse(event.data);
+        const data: FlagUpdateEvent = JSON.parse(event.data);
         console.log(`📡 SSE: Flag ${data.action}`, data.flagKey);
 
         setLastEvent(data);
@@ -46,12 +47,11 @@ export function useRealtimeFlags(onFlagChange?: (event: SSEEvent) => void) {
 
     eventSource.addEventListener('bulk_update', (event: MessageEvent) => {
       try {
-        const data = JSON.parse(event.data);
+        const data: BulkUpdateEvent = JSON.parse(event.data);
         console.log(`📡 SSE: Bulk update for ${data.flagKeys.length} flags`);
 
-        if (onFlagChange) {
-          onFlagChange({ type: 'bulk_update', ...data });
-        }
+        setLastEvent(data);
+        onFlagChange?.(data);
       } catch (error) {
         console.error('Failed to parse bulk update:', error);
       }
