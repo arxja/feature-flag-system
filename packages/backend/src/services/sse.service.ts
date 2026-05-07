@@ -1,10 +1,10 @@
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { logger } from '../utils/logger.js';
 
 class SSEManager {
   private clients: Map<string, Response> = new Map();
 
-  addClient(clientId: string, res: Response, req: Request): void {
+  addClient(clientId: string, res: Response): void {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -16,11 +16,6 @@ class SSEManager {
 
     this.clients.set(clientId, res);
     logger.info(`SSE client connected: ${clientId} (Total: ${this.clients.size})`);
-
-    // Handle client disconnect
-    req.on('close', () => {
-      this.removeClient(clientId);
-    });
   }
 
   removeClient(clientId: string): void {
