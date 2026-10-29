@@ -6,6 +6,9 @@
 
 A **production-ready, enterprise-grade feature flag system** that allows teams to safely roll out features, run A/B tests, and target specific user segments - all with real-time updates and zero downtime.
 
+>[!WARNING]
+>This is an educational and experimental artifact
+
 ## 🎯 What This Project Is
 
 This is a complete **SaaS platform** that other developers can use to add feature flags to their applications. It includes:
